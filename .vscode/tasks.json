@@ -1,0 +1,18 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Spring Boot Run",
+			"type": "shell",
+			"command": "java",
+			"args": [
+				"-cp",
+				"target/classes:C:/Users/berat/.m2/repository/org/springframework/boot/spring-boot/3.2.1/spring-boot-3.2.1.jar:C:/Users/berat/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/3.2.1/spring-boot-autoconfigure-3.2.1.jar:C:/Users/berat/.m2/repository/org/springframework/spring-context/6.1.2/spring-context-6.1.2.jar:C:/Users/berat/.m2/repository/org/postgresql/postgresql/42.6.0/postgresql-42.6.0.jar",
+				"com.gecisystems.merkezi.MerkeziApplication"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"isBackground": true
+		}
+	]
+}

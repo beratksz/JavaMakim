@@ -1,0 +1,29 @@
+[Unit]
+Description=Merkezi Geçiş Sistemi - JavaMakim
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=javamakım
+Group=javamakım
+WorkingDirectory=/opt/javamakım
+ExecStart=/usr/bin/java -Xms512m -Xmx1024m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -jar JavaMakim-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+ExecStop=/bin/kill -15 $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=javamakım
+
+# Environment
+Environment=JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+Environment=SPRING_PROFILES_ACTIVE=prod
+
+# Security
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/javamakım /var/log/javamakım /tmp
+
+[Install]
+WantedBy=multi-user.target

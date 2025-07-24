@@ -53,4 +53,75 @@ public class SyncController {
             ));
         }
     }
+        @GetMapping("/test-connection")
+    public ResponseEntity<Map<String, Object>> testConnection() {
+        try {
+            Map<String, Object> result = syncService.testAccessConnection();
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "ERROR",
+                "error", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/debug-access")
+    public ResponseEntity<Map<String, Object>> debugAccess() {
+        try {
+            Map<String, Object> result = syncService.debugAccessData();
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "ERROR",
+                "error", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/test-single")
+    public ResponseEntity<Map<String, Object>> testSingle() {
+        try {
+            Map<String, Object> result = syncService.testSingleRecord();
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "ERROR",
+                "error", e.getMessage()
+            ));
+        }
+    }
+
+    @DeleteMapping("/clear-data")
+    public ResponseEntity<Map<String, Object>> clearData() {
+        try {
+            syncService.deleteAllDataSafe();
+            return ResponseEntity.ok(Map.of(
+                "status", "SUCCESS",
+                "message", "Tüm veriler temizlendi"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "ERROR",
+                "error", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Map<String, Object>> getCount() {
+        try {
+            Map<String, Object> result = Map.of(
+                "personelCount", syncService.getPersonelCountSafe(),
+                "gecisCount", syncService.getGecisCountSafe(),
+                "status", "SUCCESS"
+            );
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "ERROR",
+                "error", e.getMessage()
+            ));
+        }
+    }
 }

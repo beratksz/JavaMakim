@@ -15,7 +15,7 @@ import java.util.*;
 @Service
 public class SimpleAccessService {
     
-    @Value("${access.database.path1:C:\\DB\\DB1.mdb}")
+    @Value("${access.database.path1}")
     private String accessDbPath;
     
     @Autowired

@@ -138,6 +138,16 @@ public class Personel {
     @Column(name = "sube_no")
     private Integer subeNo;
     
+    @Column(name = "branch_id")
+private Integer branchId;
+
+public Integer getBranchId() {
+    return branchId;
+}
+
+public void setBranchId(Integer branchId) {
+    this.branchId = branchId;
+}
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

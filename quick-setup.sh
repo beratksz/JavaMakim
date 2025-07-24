@@ -7,8 +7,6 @@ echo "======================================"
 # Sistem gereksinimlerini kontrol et
 echo "🔍 Sistem kontrol ediliyor..."
 
-# ...existing code...
-
 # JAR dosyasını otomatik bul ve çalıştır
 JAR_FILE=$(find target -name "*.jar" -not -name "*-sources.jar" -not -name "*-javadoc.jar" -not -name "*-original.jar" | head -1)
 

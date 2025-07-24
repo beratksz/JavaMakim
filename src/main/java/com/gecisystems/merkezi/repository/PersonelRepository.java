@@ -26,7 +26,8 @@ public interface PersonelRepository extends JpaRepository<Personel, Long> {
     List<Personel> findByAktifTrue();
     List<Personel> findByIptalFalse(); // Access: "Iptal" = false olan kayıtlar
     List<Personel> findBySubeNo(Integer subeNo); // Şube numarasına göre
-    
+    List<Personel> findByBranchId(Integer branchId);
+
     @Query("SELECT p FROM Personel p WHERE " +
            "(LOWER(p.adi) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(p.soyadi) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +

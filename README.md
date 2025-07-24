@@ -4,12 +4,13 @@
 
 ## 🚀 Özellikler
 
-- **Dual Database Architecture**: PostgreSQL (personel) + MS Access (geçiş kayıtları)
+- **Dual Database Architecture**: PostgreSQL (personel) + MS Access (geçiş kayıtları, birden fazla şube)
 - **Real-time Data Access**: Access DB'den canlı veri okuma
 - **Smart Data Joining**: Geçiş kayıtları ile kullanıcı bilgilerinin otomatik birleştirilmesi
 - **Advanced Filtering**: Kart ID, tarih aralığı ile filtreleme
 - **Clean Data**: ID=0 olan kayıtların otomatik filtrelenmesi
 - **Production Ready**: Hata yönetimi ve performans optimizasyonu
+- **Branch-based Logging**: Geçiş kayıtları branchId ile ayrıştırılır, personel kaydı ise tekil tutulur. Bir personel farklı şubelerde geçiş yaparsa, PostgreSQL'de branchId ile ayrışan birden fazla geçiş kaydı oluşur.
 
 ## 🛠️ Teknoloji Stack
 
@@ -96,11 +97,12 @@ src/
 
 ## 🔄 Veri Akışı
 
-1. **PostgreSQL** → Personel bilgileri
-2. **Access DB** → Geçiş kayıtları
-3. **Join Operation** → Geçiş + Kullanıcı bilgileri
-4. **Filtering** → Tarih, kart ID, temiz data
-5. **REST API** → JSON response
+1. **PostgreSQL** → Personel bilgileri (tekil, AccessId veya KartId ile eşleşir)
+2. **Access DB (Şube 1 & Şube 2)** → Geçiş kayıtları (her şube ayrı Access DB'den okunur)
+3. **BranchId ile Ayrışma** → Geçiş kayıtları branchId ile ayrıştırılır, bir personel farklı şubelerde geçiş yaparsa iki ayrı kayıt oluşur
+4. **Join Operation** → Geçiş + Kullanıcı bilgileri
+5. **Filtering** → Tarih, kart ID, temiz data
+6. **REST API** → JSON response
 
 ## 📈 Performans
 
@@ -118,13 +120,22 @@ src/
 
 ## 🏁 Production
 
-Bu sistem production ortamında çalışmaya hazırdır:
 
+### Şube Mantığı ve Prod Senaryosu
+
+Sistem, production ortamında iki farklı Access DB ile çalışacak şekilde tasarlanmıştır. Her şube için ayrı Access DB tanımlanır (`access.database.path1`, `access.database.path2`).
+
+- Bir personel sabah şube 1'de, öğleden sonra şube 2'de geçiş yaparsa, PostgreSQL'de branchId ile ayrışan iki geçiş kaydı oluşur.
+- Personel kaydı ise AccessId veya KartId ile tekil tutulur, tekrar eklenmez.
+- Böylece, gerçek hayattaki hareketler ve şube bazlı geçişler doğru şekilde kaydedilir.
+
+Sistem özellikleri:
 - ✅ Clean code architecture
 - ✅ Error handling
 - ✅ Performance optimization
 - ✅ Logging configuration
 - ✅ Resource management
+- ✅ Branch-based geçiş kaydı yönetimi
 
 ## 📞 İletişim
 

@@ -12,25 +12,20 @@ import java.util.List;
 @Repository
 public interface GecisKaydiRepository extends JpaRepository<GecisKaydi, Long> {
     
-    // Access column isimlerine göre - BİREBİR ACCESS EŞLEŞMESİ
+    // Mevcut metotlarınız...
     boolean existsByAccessId(Long accessId);
     boolean existsByKayitNo(Long kayitNo);
-    boolean existsByKayitNoAndBranchId(Long kayitNo, Integer branchId); // Şube + Kayit No kombinasyonu
-    
+    boolean existsByKayitNoAndBranchId(Long kayitNo, Integer branchId);
     List<GecisKaydi> findByKartIdOrderByTarihDesc(String kartId);
     List<GecisKaydi> findByUserKayitNoOrderByTarihDesc(Long userKayitNo);
     List<GecisKaydi> findByAccessIdOrderByTarihDesc(Long accessId);
-    
-    List<GecisKaydi> findByTarihBetweenOrderByTarihDesc(
-        LocalDateTime startDate, LocalDateTime endDate);
-    
-    List<GecisKaydi> findByKartIdAndTarihBetweenOrderByTarihDesc(
-        String kartId, LocalDateTime startDate, LocalDateTime endDate);
-    
-    List<GecisKaydi> findByGecisTipiAndTarihBetweenOrderByTarihDesc(
-        String gecisTipi, LocalDateTime startDate, LocalDateTime endDate);
-    
+    List<GecisKaydi> findByTarihBetweenOrderByTarihDesc(LocalDateTime startDate, LocalDateTime endDate);
+    List<GecisKaydi> findByKartIdAndTarihBetweenOrderByTarihDesc(String kartId, LocalDateTime startDate, LocalDateTime endDate);
+    List<GecisKaydi> findByGecisTipiAndTarihBetweenOrderByTarihDesc(String gecisTipi, LocalDateTime startDate, LocalDateTime endDate);
     List<GecisKaydi> findByBranchIdOrderByTarihDesc(Integer branchId);
+    
+    // EKSİK METOT - SyncService için gerekli:
+    List<GecisKaydi> findByTarihAfter(LocalDateTime tarih);
     
     @Query("SELECT g FROM GecisKaydi g WHERE " +
            "(g.kartId LIKE %:searchTerm% OR " +
@@ -38,13 +33,13 @@ public interface GecisKaydiRepository extends JpaRepository<GecisKaydi, Long> {
            "g.plaka LIKE %:searchTerm%) " +
            "ORDER BY g.tarih DESC")
     List<GecisKaydi> searchGecisKaydi(@Param("searchTerm") String searchTerm);
-    
+
     @Query("SELECT COUNT(g) FROM GecisKaydi g")
     long countAllGecis();
-    
+
     @Query("SELECT COUNT(g) FROM GecisKaydi g WHERE g.branchId = :branchId")
     long countByBranchId(@Param("branchId") Integer branchId);
-    
+
     @Query("SELECT COUNT(g) FROM GecisKaydi g WHERE g.tarih >= :date")
     long countSince(@Param("date") LocalDateTime date);
 }

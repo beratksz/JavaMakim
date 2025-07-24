@@ -1,0 +1,44 @@
+# Build outputs
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+*~
+
+# Maven wrapper
+.mvn/
+
+# Gradle
+.gradle/
+build/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Database files
+*.mdb
+*.accdb
+*.ldb
+
+# Application specific
+application-local.properties

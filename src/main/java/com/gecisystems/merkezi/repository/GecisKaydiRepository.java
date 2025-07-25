@@ -12,7 +12,6 @@ import java.util.List;
 @Repository
 public interface GecisKaydiRepository extends JpaRepository<GecisKaydi, Long> {
     
-    // Mevcut metotlarınız...
     boolean existsByAccessId(Long accessId);
     boolean existsByKayitNo(Long kayitNo);
     boolean existsByKayitNoAndBranchId(Long kayitNo, Integer branchId);
@@ -24,7 +23,6 @@ public interface GecisKaydiRepository extends JpaRepository<GecisKaydi, Long> {
     List<GecisKaydi> findByGecisTipiAndTarihBetweenOrderByTarihDesc(String gecisTipi, LocalDateTime startDate, LocalDateTime endDate);
     List<GecisKaydi> findByBranchIdOrderByTarihDesc(Integer branchId);
     
-    // EKSİK METOT - SyncService için gerekli:
     List<GecisKaydi> findByTarihAfter(LocalDateTime tarih);
     
     @Query("SELECT g FROM GecisKaydi g WHERE " +

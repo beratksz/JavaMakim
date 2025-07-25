@@ -241,7 +241,8 @@ public class SyncService {
                     }
                     
                     validRows++;
-                    String uniqueKey = tarih.toString() + ":" + kartId + ":" + branchId;
+                    // String uniqueKey = tarih.toString() + ":" + kartId + ":" + branchId;
+                    String uniqueKey = tarih.toString() + ":" + kartId;
                     
                     if (existingUniqueKeys.contains(uniqueKey)) {
                         filteredCount++;
@@ -331,21 +332,19 @@ public class SyncService {
             
             // Eğer çok fazla kayıt varsa, sadece son 3 günü kontrol et
             Set<String> uniqueKeys = new HashSet<>();
-            LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
             
-            List<GecisKaydi> existing;
-            if (count > 100000) {
-                existing = gecisKaydiRepository.findByTarihAfter(threeDaysAgo);
-                System.out.println("ℹ️ Çok fazla kayıt var, sadece son 3 günün kayıtları kontrol ediliyor: " + existing.size());
-            } else {
-                existing = gecisKaydiRepository.findAll();
-                System.out.println("ℹ️ Tüm mevcut kayıtlar kontrol ediliyor: " + existing.size());
-            }
+            List<GecisKaydi> existing = gecisKaydiRepository.findAll();
+            System.out.println("ℹ️ Tüm mevcut kayıtlar kontrol ediliyor: " + existing.size());
             
+            int debugCount = 0;
             for (GecisKaydi g : existing) {
-                if (g.getTarih() != null && g.getKartId() != null && g.getBranchId() != null) {
-                    String uniqueKey = g.getTarih().toString() + ":" + g.getKartId() + ":" + g.getBranchId();
+                if (g.getTarih() != null && g.getKartId() != null) {
+                    String uniqueKey = g.getTarih().toString() + ":" + g.getKartId();
                     uniqueKeys.add(uniqueKey);
+                    if (debugCount < 20) {
+                        System.out.println("[DEBUG] uniqueKey=" + uniqueKey + " | tarih=" + g.getTarih() + " | kartId=" + g.getKartId());
+                        debugCount++;
+                    }
                 }
             }
             

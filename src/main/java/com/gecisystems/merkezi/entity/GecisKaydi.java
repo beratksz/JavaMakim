@@ -77,6 +77,13 @@ public class GecisKaydi {
     @Column(name = "branch_id")
     private Integer branchId;
     
+    // Geçiş anındaki personel bilgileri (ziyaretçi değişimi için)
+    @Column(name = "gecis_anindaki_adi", length = 100)
+    private String gecisAnindakiAdi;
+    
+    @Column(name = "gecis_anindaki_soyadi", length = 100)
+    private String gecisAnindakiSoyadi;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -280,6 +287,22 @@ public class GecisKaydi {
         this.branchId = branchId;
     }
     
+    public String getGecisAnindakiAdi() {
+        return gecisAnindakiAdi;
+    }
+    
+    public void setGecisAnindakiAdi(String gecisAnindakiAdi) {
+        this.gecisAnindakiAdi = gecisAnindakiAdi;
+    }
+    
+    public String getGecisAnindakiSoyadi() {
+        return gecisAnindakiSoyadi;
+    }
+    
+    public void setGecisAnindakiSoyadi(String gecisAnindakiSoyadi) {
+        this.gecisAnindakiSoyadi = gecisAnindakiSoyadi;
+    }
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -305,6 +328,8 @@ public class GecisKaydi {
                 ", tarih=" + tarih +
                 ", gecisTipi='" + gecisTipi + '\'' +
                 ", kullaniciAdi='" + kullaniciAdi + '\'' +
+                ", gecisAnindakiAdi='" + gecisAnindakiAdi + '\'' +
+                ", gecisAnindakiSoyadi='" + gecisAnindakiSoyadi + '\'' +
                 ", branchId=" + branchId +
                 '}';
     }

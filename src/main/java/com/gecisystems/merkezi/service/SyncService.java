@@ -591,6 +591,21 @@ public class SyncService {
             // Şube bilgisi ekle
             gecis.setBranchId(branchId);
             
+            // Geçiş anındaki personel bilgilerini bul ve ekle
+            String kartId = gecis.getKartId();
+            if (kartId != null && !kartId.trim().isEmpty()) {
+                Optional<Personel> personelOpt = personelRepository.findByKartId(kartId);
+                if (personelOpt.isPresent()) {
+                    Personel personel = personelOpt.get();
+                    gecis.setGecisAnindakiAdi(personel.getAdi());
+                    gecis.setGecisAnindakiSoyadi(personel.getSoyadi());
+                    System.out.println("🔗 Geçiş anındaki personel bilgisi eklendi: " + 
+                                     personel.getAdi() + " " + personel.getSoyadi() + " (Kart: " + kartId + ")");
+                } else {
+                    System.out.println("⚠️ Kart ID bulunamadı: " + kartId);
+                }
+            }
+            
             return gecis;
             
         } catch (Exception e) {

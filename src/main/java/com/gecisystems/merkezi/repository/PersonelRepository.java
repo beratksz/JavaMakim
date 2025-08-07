@@ -41,4 +41,8 @@ public interface PersonelRepository extends JpaRepository<Personel, Long> {
     
     @Query("SELECT COUNT(p) FROM Personel p WHERE p.iptal = false OR p.iptal IS NULL")
     long countNonCancelledPersonel();
+    
+    // Güncelleme için mevcut personeli bul
+    @Query("SELECT p FROM Personel p WHERE p.accessId = :accessId OR p.kartId = :kartId")
+    Optional<Personel> findByAccessIdOrKartId(@Param("accessId") Long accessId, @Param("kartId") String kartId);
 }

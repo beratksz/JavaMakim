@@ -58,15 +58,15 @@ public class SyncService {
         Map<String, Object> result = new HashMap<>();
         LocalDateTime syncStartTime = LocalDateTime.now();
         
-        System.out.println("🚀 Hibrit senkronizasyon başlıyor... (Hızlı + Güvenli)");
+        System.out.println("🚀 Hibrit senkronizasyon başlıyor... (Hızlı + Güvenli + Güncelleme)");
         
-        int personelAdded = 0;
+        int personelProcessed = 0; // Hem yeni hem güncellenen
         int gecisAdded = 0;
         
         try {
             // Şube 1 - Her şube paralel olarak işlenebilir
             System.out.println("📂 Şube 1 senkronizasyonu başlıyor...");
-            personelAdded += syncPersonelFromAccessHybrid(accessDbPath1, 1);
+            personelProcessed += syncPersonelFromAccessHybrid(accessDbPath1, 1);
             Thread.sleep(2000); // Biraz daha uzun recovery
             gecisAdded += syncGecisFromAccessHybrid(accessDbPath1, 1);
             
@@ -74,15 +74,15 @@ public class SyncService {
             
             // Şube 2 - Her şube paralel olarak işlenebilir  
             System.out.println("📂 Şube 2 senkronizasyonu başlıyor...");
-            personelAdded += syncPersonelFromAccessHybrid(accessDbPath2, 2);
+            personelProcessed += syncPersonelFromAccessHybrid(accessDbPath2, 2);
             Thread.sleep(2000); // Biraz daha uzun recovery
             gecisAdded += syncGecisFromAccessHybrid(accessDbPath2, 2);
             
             result.put("status", "SUCCESS");
-            result.put("personelAdded", personelAdded);
+            result.put("personelProcessed", personelProcessed); // Eklenen + güncellenen
             result.put("gecisAdded", gecisAdded);
             result.put("syncTime", syncStartTime);
-            result.put("syncMode", "HYBRID_FAST");
+            result.put("syncMode", "HYBRID_FAST_WITH_UPDATE");
             
             long durationMs = java.time.Duration.between(syncStartTime, LocalDateTime.now()).toMillis();
             result.put("durationMs", durationMs);
@@ -100,9 +100,11 @@ public class SyncService {
         return result;
     }
     
-    // Hibrit personel senkronizasyonu - Hızlı batch + güvenli fallback
+    // Hibrit personel senkronizasyonu - Hızlı batch + güvenli fallback + Güncelleme
     private int syncPersonelFromAccessHybrid(String dbPath, int branchId) {
-        int totalAdded = 0;
+        int totalProcessed = 0;
+        int updatedCount = 0;
+        int newCount = 0;
         
         try {
             File dbFile = new File(dbPath);
@@ -111,7 +113,7 @@ public class SyncService {
                 return 0;
             }
             
-            System.out.println("🔍 Personel kayıtları okunuyor... (Şube " + branchId + ")");
+            System.out.println("🔍 Personel kayıtları okunuyor ve güncelleniyor... (Şube " + branchId + ")");
             
             List<Personel> allPersonel = new ArrayList<>();
             
@@ -145,13 +147,23 @@ public class SyncService {
                         continue;
                     }
                     
-                    // DB'de var mı kontrol et - ID veya Kart ID ile
-                    boolean exists = checkPersonelExists(accessId, kartId, tcKimlik);
+                    // DB'de var mı kontrol et - güncelleme için mevcut kaydı al
+                    Personel existingPersonel = checkAndGetExistingPersonel(accessId, kartId, tcKimlik);
                     
-                    if (!exists) {
+                    if (existingPersonel != null) {
+                        // Mevcut personeli güncelle
+                        boolean updated = updatePersonelFromRow(existingPersonel, row);
+                        if (updated) {
+                            updatedCount++;
+                            totalProcessed++;
+                        }
+                    } else {
+                        // Yeni personel ekle
                         Personel personel = createPersonelFromRow(row);
-                        personel.setBranchId(branchId); // Branch ID'yi ekle
-                        allPersonel.add(personel);
+                        if (personel != null) {
+                            personel.setBranchId(branchId); // Branch ID'yi ekle
+                            allPersonel.add(personel);
+                        }
                     }
                 }
                 
@@ -166,7 +178,8 @@ public class SyncService {
                 batch.add(personel);
                 if (batch.size() >= batchSize) {
                     int saved = savePersonelBatchHybrid(batch, branchId);
-                    totalAdded += saved;
+                    newCount += saved;
+                    totalProcessed += saved;
                     batch.clear();
                     Thread.sleep(500); // Kısa bir bekleme ekle
                 }
@@ -174,11 +187,13 @@ public class SyncService {
             // Kalan kayıtları kaydet
             if (!batch.isEmpty()) {
                 int saved = savePersonelBatchHybrid(batch, branchId);
-                totalAdded += saved;
+                newCount += saved;
+                totalProcessed += saved;
             }
             
-            if (totalAdded > 0) {
-                System.out.println("✅ Toplam " + totalAdded + " yeni personel eklendi (Şube " + branchId + ")");
+            if (totalProcessed > 0) {
+                System.out.println("✅ Toplam " + totalProcessed + " personel işlendi: " + 
+                    newCount + " yeni, " + updatedCount + " güncellenen (Şube " + branchId + ")");
             }
             
         } catch (Exception e) {
@@ -186,7 +201,7 @@ public class SyncService {
             e.printStackTrace();
         }
         
-        return totalAdded;
+        return totalProcessed;
     }
     
     // Hibrit geçiş senkronizasyonu - Hızlı batch + güvenli fallback
@@ -295,26 +310,107 @@ public class SyncService {
         return totalAdded;
     }
     
-    // Basit existence check - ID ve Kart ID ile kontrol
-    public boolean checkPersonelExists(Long accessId, String kartId, String tcKimlik) {
+    // Personel var mı kontrol et ve güncelleme için döndür
+    public Personel checkAndGetExistingPersonel(Long accessId, String kartId, String tcKimlik) {
         try {
+            // Önce AccessId ile ara
             if (accessId != null) {
-                boolean exists = personelRepository.existsByAccessId(accessId);
-                if (exists) {
-                    System.out.println("🔍 Personel zaten var (AccessID): " + accessId);
-                    return true;
+                Optional<Personel> existing = personelRepository.findByAccessId(accessId);
+                if (existing.isPresent()) {
+                    System.out.println("🔍 Personel bulundu (AccessID): " + accessId);
+                    return existing.get();
                 }
             }
+            
+            // Sonra KartId ile ara
             if (kartId != null && !kartId.trim().isEmpty()) {
-                boolean exists = personelRepository.existsByKartId(kartId);
-                if (exists) {
-                    System.out.println("🔍 Personel zaten var (KartID): " + kartId);
-                    return true;
+                Optional<Personel> existing = personelRepository.findByKartId(kartId);
+                if (existing.isPresent()) {
+                    System.out.println("🔍 Personel bulundu (KartID): " + kartId);
+                    return existing.get();
                 }
             }
-            return false;
+            
+            // TC Kimlik ile de ara
+            if (tcKimlik != null && !tcKimlik.trim().isEmpty()) {
+                Optional<Personel> existing = personelRepository.findByTcKimlik(tcKimlik);
+                if (existing.isPresent()) {
+                    System.out.println("🔍 Personel bulundu (TC Kimlik): " + tcKimlik);
+                    return existing.get();
+                }
+            }
+            
+            return null; // Bulunamadı
         } catch (Exception e) {
-            System.err.println("⚠️ Personel existence kontrol hatası: " + e.getMessage());
+            System.err.println("⚠️ Personel arama hatası: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Eski basit existence check - geriye uyumluluk için
+    public boolean checkPersonelExists(Long accessId, String kartId, String tcKimlik) {
+        return checkAndGetExistingPersonel(accessId, kartId, tcKimlik) != null;
+    }
+    
+    // Personel bilgilerini güncelle
+    @Transactional
+    public boolean updatePersonelFromRow(Personel existingPersonel, Row row) {
+        try {
+            System.out.println("🔄 Personel güncelleniyor: " + existingPersonel.getFullName());
+            
+            // Access'teki güncel bilgileri al ve mevcut personeli güncelle
+            existingPersonel.setKayitNo(getLongValue(row, "Kayit No"));
+            existingPersonel.setAccessId(getLongValue(row, "ID"));
+            existingPersonel.setKartId(getStringValue(row, "Kart ID"));
+            existingPersonel.setDogrulamaPin(getStringValue(row, "Dogrulama PIN"));
+            existingPersonel.setKimlikPin(getStringValue(row, "Kimlik PIN"));
+            existingPersonel.setAdi(getStringValue(row, "Adi"));
+            existingPersonel.setSoyadi(getStringValue(row, "Soyadi"));
+            existingPersonel.setKullaniciTipi(getIntegerValue(row, "Kullanici Tipi"));
+            existingPersonel.setSifre(getStringValue(row, "Sifre"));
+            existingPersonel.setGecisModu(getIntegerValue(row, "Gecis Modu"));
+            existingPersonel.setGrupNo(getIntegerValue(row, "Grup No"));
+            existingPersonel.setVisitorGrupNo(getIntegerValue(row, "Visitor Grup No"));
+            existingPersonel.setResim(getBinaryValue(row, "Resim"));
+            existingPersonel.setPlaka(getStringValue(row, "Plaka"));
+            existingPersonel.setTcKimlik(getStringValue(row, "TCKimlik"));
+            existingPersonel.setBlokNo(getIntegerValue(row, "Blok No"));
+            existingPersonel.setDaire(getStringValue(row, "Daire"));
+            existingPersonel.setAdres(getStringValue(row, "Adres"));
+            existingPersonel.setGorev(getStringValue(row, "Gorev"));
+            existingPersonel.setDepartmanNo(getIntegerValue(row, "Departman No"));
+            existingPersonel.setSirketNo(getIntegerValue(row, "Sirket No"));
+            existingPersonel.setAciklama(getStringValue(row, "Aciklama"));
+            existingPersonel.setIptal(getBooleanValue(row, "Iptal"));
+            existingPersonel.setGrupTakvimiAktif(getBooleanValue(row, "Grup Takvimi Aktif"));
+            existingPersonel.setGrupTakvimiNo(getIntegerValue(row, "Grup Takvimi No"));
+            existingPersonel.setSaat1(getIntegerValue(row, "Saat 1"));
+            existingPersonel.setGrupNo1(getIntegerValue(row, "Grup No 1"));
+            existingPersonel.setSaat2(getIntegerValue(row, "Saat 2"));
+            existingPersonel.setGrupNo2(getIntegerValue(row, "Grup No 2"));
+            existingPersonel.setSaat3(getIntegerValue(row, "Saat 3"));
+            existingPersonel.setGrupNo3(getIntegerValue(row, "Grup No 3"));
+            existingPersonel.setTmp(getStringValue(row, "Tmp"));
+            existingPersonel.setSureliKullanici(getBooleanValue(row, "Sureli Kullanici"));
+            existingPersonel.setBitisTarihi(getDateTimeValue(row, "Bitis Tarihi"));
+            existingPersonel.setTelefon(getStringValue(row, "Telefon"));
+            existingPersonel.setUcGrup(getIntegerValue(row, "3 Grup"));
+            existingPersonel.setBitisSaati(getDateTimeValue(row, "Bitis Saati"));
+            
+            // Aktiflik durumu güncelle
+            Boolean iptal = getBooleanValue(row, "Iptal");
+            existingPersonel.setAktif(iptal == null || !iptal);
+            
+            // Updated_at otomatik güncellenecek (@PreUpdate)
+            
+            // Kaydet
+            personelRepository.save(existingPersonel);
+            System.out.println("✅ Personel güncellendi: " + existingPersonel.getFullName());
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("⚠️ Personel güncelleme hatası: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

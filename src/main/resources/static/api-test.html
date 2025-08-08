@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaMakim API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .inline-form {
+            display: inline-block;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JavaMakim API Test Sayfası</h1>
+    
+    <!-- Users API Section -->
+    <div class="container">
+        <h2>Users API</h2>
+        <div class="section">
+            <h3>Tüm Kullanıcılar</h3>
+            <div>
+                <label>Sayfa:</label>
+                <input type="number" id="usersPage" value="0" min="0">
+                <label>Boyut:</label>
+                <input type="number" id="usersSize" value="10" min="1" max="100">
+                <label>Sırala:</label>
+                <select id="usersSortBy">
+                    <option value="id">ID</option>
+                    <option value="adi">Ad</option>
+                    <option value="soyadi">Soyad</option>
+                    <option value="kartId">Kart ID</option>
+                </select>
+                <select id="usersSortDir">
+                    <option value="asc">Artan</option>
+                    <option value="desc">Azalan</option>
+                </select>
+                <button onclick="getAllUsers()">Kullanıcıları Getir</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Tekil Kullanıcı Sorguları</h3>
+            <div class="inline-form">
+                <label>ID:</label>
+                <input type="number" id="userId" placeholder="Kullanıcı ID">
+                <button onclick="getUserById()">ID ile Getir</button>
+            </div>
+            
+            <div class="inline-form">
+                <label>Access ID:</label>
+                <input type="number" id="userAccessId" placeholder="Access ID">
+                <button onclick="getUserByAccessId()">Access ID ile Getir</button>
+            </div>
+            
+            <div class="inline-form">
+                <label>Kart ID:</label>
+                <input type="text" id="userCardId" placeholder="Kart ID">
+                <button onclick="getUserByCardId()">Kart ID ile Getir</button>
+            </div>
+            
+            <div class="inline-form">
+                <label>TC Kimlik:</label>
+                <input type="text" id="userTcKimlik" placeholder="TC Kimlik">
+                <button onclick="getUserByTcKimlik()">TC ile Getir</button>
+            </div>
+            
+            <div class="inline-form">
+                <label>Şube ID:</label>
+                <input type="number" id="userBranchId" placeholder="Şube ID">
+                <button onclick="getUsersByBranch()">Şube ile Getir</button>
+            </div>
+            
+            <div class="inline-form">
+                <button onclick="getActiveUsers()">Aktif Kullanıcıları Getir</button>
+            </div>
+        </div>
+        
+        <div id="usersResult" class="result"></div>
+    </div>
+    
+    <!-- Access Data API Section -->
+    <div class="container">
+        <h2>Access Data API</h2>
+        <div class="section">
+            <h3>Tüm Geçiş Kayıtları</h3>
+            <div>
+                <label>Sayfa:</label>
+                <input type="number" id="accessPage" value="0" min="0">
+                <label>Boyut:</label>
+                <input type="number" id="accessSize" value="10" min="1" max="100">
+                <label>Sırala:</label>
+                <select id="accessSortBy">
+                    <option value="id">ID</option>
+                    <option value="tarih">Tarih</option>
+                    <option value="kartId">Kart ID</option>
+                </select>
+                <select id="accessSortDir">
+                    <option value="desc">Azalan</option>
+                    <option value="asc">Artan</option>
+                </select>
+                <button onclick="getAllAccessData()">Geçiş Kayıtlarını Getir</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Tekil Geçiş Kayıt Sorguları</h3>
+            <div class="inline-form">
+                <label>ID:</label>
+                <input type="number" id="accessId" placeholder="Geçiş Kaydı ID">
+                <button onclick="getAccessDataById()">ID ile Getir</button>
+            </div>
+            
+            <div class="inline-form">
+                <label>Kart ID:</label>
+                <input type="text" id="accessCardId" placeholder="Kart ID">
+                <button onclick="getAccessDataByCardId()">Kart ID ile Getir</button>
+            </div>
+            
+            <div class="inline-form">
+                <label>Kullanıcı Kayıt No:</label>
+                <input type="number" id="accessUserKayitNo" placeholder="Kullanıcı Kayıt No">
+                <button onclick="getAccessDataByUser()">Kullanıcı ile Getir</button>
+            </div>
+            
+            <div class="inline-form">
+                <label>Şube ID:</label>
+                <input type="number" id="accessBranchId" placeholder="Şube ID">
+                <button onclick="getAccessDataByBranch()">Şube ile Getir</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>Tarih Aralığı Sorguları</h3>
+            <div>
+                <label>Başlangıç:</label>
+                <input type="datetime-local" id="startDate" value="2025-01-01T00:00">
+                <label>Bitiş:</label>
+                <input type="datetime-local" id="endDate" value="2025-12-31T23:59">
+                <button onclick="getAccessDataByDateRange()">Tarih Aralığı ile Getir</button>
+            </div>
+            
+            <div style="margin-top: 10px;">
+                <label>Geçiş Tipi:</label>
+                <input type="text" id="gecisTipi" placeholder="Geçiş Tipi (örn: Giriş, Çıkış)">
+                <button onclick="getAccessDataByType()">Geçiş Tipi ile Getir</button>
+            </div>
+            
+            <div style="margin-top: 10px;">
+                <label>Tarih (sonrası):</label>
+                <input type="datetime-local" id="afterDate" value="2025-01-01T00:00">
+                <button onclick="getAccessDataAfterDate()">Belirli Tarihten Sonra</button>
+            </div>
+        </div>
+        
+        <div id="accessResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api/v1';
+        
+        // Utility function to display results
+        function displayResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            
+            if (typeof data === 'string') {
+                element.textContent = data;
+            } else {
+                element.textContent = JSON.stringify(data, null, 2);
+            }
+        }
+        
+        // Generic API call function
+        async function makeApiCall(url, resultElementId) {
+            try {
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayResult(resultElementId, data);
+                
+            } catch (error) {
+                displayResult(resultElementId, `Hata: ${error.message}`, true);
+            }
+        }
+        
+        // Users API Functions
+        function getAllUsers() {
+            const page = document.getElementById('usersPage').value;
+            const size = document.getElementById('usersSize').value;
+            const sortBy = document.getElementById('usersSortBy').value;
+            const sortDir = document.getElementById('usersSortDir').value;
+            
+            const url = `${API_BASE_URL}/users?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`;
+            makeApiCall(url, 'usersResult');
+        }
+        
+        function getUserById() {
+            const id = document.getElementById('userId').value;
+            if (!id) {
+                displayResult('usersResult', 'Lütfen kullanıcı ID girin', true);
+                return;
+            }
+            
+            const url = `${API_BASE_URL}/users/${id}`;
+            makeApiCall(url, 'usersResult');
+        }
+        
+        function getUserByAccessId() {
+            const accessId = document.getElementById('userAccessId').value;
+            if (!accessId) {
+                displayResult('usersResult', 'Lütfen Access ID girin', true);
+                return;
+            }
+            
+            const url = `${API_BASE_URL}/users/by-access-id/${accessId}`;
+            makeApiCall(url, 'usersResult');
+        }
+        
+        function getUserByCardId() {
+            const cardId = document.getElementById('userCardId').value;
+            if (!cardId) {
+                displayResult('usersResult', 'Lütfen Kart ID girin', true);
+                return;
+            }
+            
+            const url = `${API_BASE_URL}/users/by-card/${encodeURIComponent(cardId)}`;
+            makeApiCall(url, 'usersResult');
+        }
+        
+        function getUserByTcKimlik() {
+            const tcKimlik = document.getElementById('userTcKimlik').value;
+            if (!tcKimlik) {
+                displayResult('usersResult', 'Lütfen TC Kimlik girin', true);
+                return;
+            }
+            
+            const url = `${API_BASE_URL}/users/by-tc/${tcKimlik}`;
+            makeApiCall(url, 'usersResult');
+        }
+        
+        function getUsersByBranch() {
+            const branchId = document.getElementById('userBranchId').value;
+            if (!branchId) {
+                displayResult('usersResult', 'Lütfen Şube ID girin', true);
+                return;
+            }
+            
+            const url = `${API_BASE_URL}/users/by-branch/${branchId}`;
+            makeApiCall(url, 'usersResult');
+        }
+        
+        function getActiveUsers() {
+            const url = `${API_BASE_URL}/users/active`;
+            makeApiCall(url, 'usersResult');
+        }
+        
+        // Access Data API Functions
+        function getAllAccessData() {
+            const page = document.getElementById('accessPage').value;
+            const size = document.getElementById('accessSize').value;
+            const sortBy = document.getElementById('accessSortBy').value;
+            const sortDir = document.getElementById('accessSortDir').value;
+            
+            const url = `${API_BASE_URL}/accessdata?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`;
+            makeApiCall(url, 'accessResult');
+        }
+        
+        function getAccessDataById() {
+            const id = document.getElementById('accessId').value;
+            if (!id) {
+                displayResult('accessResult', 'Lütfen geçiş kaydı ID girin', true);
+                return;
+            }
+            
+            const url = `${API_BASE_URL}/accessdata/${id}`;
+            makeApiCall(url, 'accessResult');
+        }
+        
+        function getAccessDataByCardId() {
+            const cardId = document.getElementById('accessCardId').value;
+            if (!cardId) {
+                displayResult('accessResult', 'Lütfen Kart ID girin', true);
+                return;
+            }
+            
+            const url = `${API_BASE_URL}/accessdata/by-card/${encodeURIComponent(cardId)}`;
+            makeApiCall(url, 'accessResult');
+        }
+        
+        function getAccessDataByUser() {
+            const userKayitNo = document.getElementById('accessUserKayitNo').value;
+            if (!userKayitNo) {
+                displayResult('accessResult', 'Lütfen kullanıcı kayıt no girin', true);
+                return;
+            }
+            
+            const url = `${API_BASE_URL}/accessdata/by-user/${userKayitNo}`;
+            makeApiCall(url, 'accessResult');
+        }
+        
+        function getAccessDataByBranch() {
+            const branchId = document.getElementById('accessBranchId').value;
+            if (!branchId) {
+                displayResult('accessResult', 'Lütfen Şube ID girin', true);
+                return;
+            }
+            
+            const url = `${API_BASE_URL}/accessdata/by-branch/${branchId}`;
+            makeApiCall(url, 'accessResult');
+        }
+        
+        function getAccessDataByDateRange() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                displayResult('accessResult', 'Lütfen başlangıç ve bitiş tarihleri girin', true);
+                return;
+            }
+            
+            const startDateTime = startDate + ':00';
+            const endDateTime = endDate + ':59';
+            
+            const url = `${API_BASE_URL}/accessdata/by-date-range?startDate=${encodeURIComponent(startDateTime)}&endDate=${encodeURIComponent(endDateTime)}`;
+            makeApiCall(url, 'accessResult');
+        }
+        
+        function getAccessDataByType() {
+            const gecisTipi = document.getElementById('gecisTipi').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!gecisTipi || !startDate || !endDate) {
+                displayResult('accessResult', 'Lütfen geçiş tipi ve tarih aralığı girin', true);
+                return;
+            }
+            
+            const startDateTime = startDate + ':00';
+            const endDateTime = endDate + ':59';
+            
+            const url = `${API_BASE_URL}/accessdata/by-type/${encodeURIComponent(gecisTipi)}?startDate=${encodeURIComponent(startDateTime)}&endDate=${encodeURIComponent(endDateTime)}`;
+            makeApiCall(url, 'accessResult');
+        }
+        
+        function getAccessDataAfterDate() {
+            const afterDate = document.getElementById('afterDate').value;
+            
+            if (!afterDate) {
+                displayResult('accessResult', 'Lütfen tarih girin', true);
+                return;
+            }
+            
+            const dateTime = afterDate + ':00';
+            
+            const url = `${API_BASE_URL}/accessdata/after-date?date=${encodeURIComponent(dateTime)}`;
+            makeApiCall(url, 'accessResult');
+        }
+    </script>
+</body>
+</html>
